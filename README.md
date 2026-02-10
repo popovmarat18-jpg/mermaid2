@@ -1,56 +1,88 @@
 # mermaid2
 ```mermaid
-erDiagram
-  USERS ||--o{ VISITED_PLACES : owns
-  USERS ||--o{ TRIPS : creates
-  TRIPS ||--o{ TRIP_ITEMS : contains
-  CATEGORIES ||--o{ VISITED_PLACES : classifies
-  CATEGORIES ||--o{ TRIP_ITEMS : classifies
+classDiagram
+  direction LR
 
-  USERS {
-    BIGINT id PK
-    VARCHAR email "UNIQUE"
-    VARCHAR password_hash
-    VARCHAR role "USER|ADMIN"
+  class User {
+    +Long id
+    +String email
+    +String passwordHash
+    +Role role
   }
 
-  CATEGORIES {
-    BIGINT id PK
-    VARCHAR code "UNIQUE (BRIDGE, MUSEUM, ...)"
-    VARCHAR name
+  class Category {
+    +Long id
+    +String code
+    +String name
   }
 
-  VISITED_PLACES {
-    BIGINT id PK
-    BIGINT user_id FK
-    VARCHAR name
-    DOUBLE latitude
-    DOUBLE longitude
-    VARCHAR google_maps_url
-    TIMESTAMP saved_at "nullable"
-    BIGINT category_id FK "nullable"
+  class VisitedPlace {
+    +Long id
+    +String name
+    +double latitude
+    +double longitude
+    +String googleMapsUrl
+    +Instant savedAt
   }
 
-  TRIPS {
-    BIGINT id PK
-    BIGINT user_id FK
-    DOUBLE destination_lat
-    DOUBLE destination_lon
-    INT radius_km
-    DATE start_date "nullable"
-    DATE end_date "nullable"
+  class Trip {
+    +Long id
+    +double destinationLat
+    +double destinationLon
+    +int radiusKm
+    +LocalDate startDate
+    +LocalDate endDate
   }
 
-  TRIP_ITEMS {
-    BIGINT id PK
-    BIGINT trip_id FK
-    VARCHAR place_name
-    DOUBLE latitude
-    DOUBLE longitude
-    VARCHAR maps_url
-    VARCHAR photo_url "nullable"
-    BIGINT category_id FK "nullable"
-    VARCHAR status "PLANNED|VISITED|SKIPPED"
+  class TripItem {
+    +Long id
+    +String placeName
+    +double latitude
+    +double longitude
+    +String mapsUrl
+    +String photoUrl
+    +TripItemStatus status
   }
+
+  class InterestProfile {
+    +Map~String, Double~ categoryWeights
+    +List~String~ topKeywords
+  }
+
+  class RecommendedPlaceDTO {
+    +String name
+    +double latitude
+    +double longitude
+    +double distanceKm
+    +double score
+    +String reason
+    +String mapsUrl
+    +String photoUrl
+  }
+
+  class CategoryResolver {
+    +String resolveCategory(String name)
+  }
+
+  class GooglePlacesClient {
+    +List~PlaceCandidate~ nearbySearch(double lat, double lon, int radiusKm, List~String~ types)
+  }
+
+  class RecommendationService {
+    +List~RecommendedPlaceDTO~ getRecommendations(Long tripId, int limit)
+  }
+
+  User "1" --> "0..*" VisitedPlace : owns
+  User "1" --> "0..*" Trip : creates
+  Trip "1" --> "0..*" TripItem : contains
+
+  Category "0..1" --> "0..*" VisitedPlace : category
+  Category "0..1" --> "0..*" TripItem : category
+
+  RecommendationService ..> GooglePlacesClient : uses
+  RecommendationService ..> CategoryResolver : uses
+  RecommendationService ..> InterestProfile : builds
+  RecommendationService ..> RecommendedPlaceDTO : returns
+
 
 ```
