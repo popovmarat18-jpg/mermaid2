@@ -1,0 +1,85 @@
+```mermaid
+classDiagram
+  direction LR
+
+  class User {
+    +Long id
+    +String email
+    +String passwordHash
+    +Role role
+  }
+
+  class Category {
+    +Long id
+    +String code
+    +String name
+  }
+
+  class VisitedPlace {
+    +Long id
+    +String name
+    +double latitude
+    +double longitude
+    +String googleMapsUrl
+    +Instant savedAt
+  }
+
+  class Trip {
+    +Long id
+    +double destinationLat
+    +double destinationLon
+    +int radiusKm
+    +LocalDate startDate
+    +LocalDate endDate
+  }
+
+  class TripItem {
+    +Long id
+    +String placeName
+    +double latitude
+    +double longitude
+    +String mapsUrl
+    +String photoUrl
+    +TripItemStatus status
+  }
+
+  class InterestProfile {
+    +Map~String, Double~ categoryWeights
+    +List~String~ topKeywords
+  }
+
+  class RecommendedPlaceDTO {
+    +String name
+    +double latitude
+    +double longitude
+    +double distanceKm
+    +double score
+    +String reason
+    +String mapsUrl
+    +String photoUrl
+  }
+
+  class CategoryResolver {
+    +String resolveCategory(String name)
+  }
+
+  class GooglePlacesClient {
+    +List~PlaceCandidate~ nearbySearch(double lat, double lon, int radiusKm, List~String~ types)
+  }
+
+  class RecommendationService {
+    +List~RecommendedPlaceDTO~ getRecommendations(Long tripId, int limit)
+  }
+
+  User "1" --> "0..*" VisitedPlace : owns
+  User "1" --> "0..*" Trip : creates
+  Trip "1" --> "0..*" TripItem : contains
+
+  Category "0..1" --> "0..*" VisitedPlace : category
+  Category "0..1" --> "0..*" TripItem : category
+
+  RecommendationService ..> GooglePlacesClient : uses
+  RecommendationService ..> CategoryResolver : uses
+  RecommendationService ..> InterestProfile : builds
+  RecommendationService ..> RecommendedPlaceDTO : returns
+```
